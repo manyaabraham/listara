@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Download Listara App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #FF6B35, #4ECDC4);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+        .download-card {
+            background: white;
+            border-radius: 30px;
+            padding: 40px 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: slideUp 0.6s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .logo {
+            font-size: 70px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        h1 {
+            font-size: 32px;
+            color: #FF6B35;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .platform-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .platform-btn {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .platform-btn:hover {
+            transform: translateX(5px);
+            border-color: #FF6B35;
+            background: white;
+        }
+        .platform-icon {
+            font-size: 30px;
+        }
+        .platform-info {
+            flex: 1;
+            margin-left: 15px;
+            text-align: left;
+        }
+        .platform-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 18px;
+        }
+        .platform-desc {
+            font-size: 12px;
+            color: #666;
+        }
+        .install-icon {
+            font-size: 20px;
+            color: #FF6B35;
+        }
+        .qr-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+        }
+        .qr-code {
+            width: 150px;
+            height: 150px;
+            background: white;
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 15px;
+            font-size: 120px;
+        }
+        .instructions {
+            text-align: left;
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0f0f0;
+            border-radius: 15px;
+        }
+        .instructions h3 {
+            color: #FF6B35;
+            margin-bottom: 15px;
+        }
+        .instructions ol {
+            margin-left: 20px;
+        }
+        .instructions li {
+            margin: 10px 0;
+            color: #555;
+        }
+        @media (max-width: 480px) {
+            .download-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="download-card">
+            <div class="logo">📱</div>
+            <h1>Install Listara</h1>
+            <p class="subtitle">Get the best kitchen management experience on your phone</p>
+
+            <div class="platform-buttons">
+                <div class="platform-btn" onclick="showInstructions('android')">
+                    <div class="platform-icon">🤖</div>
+                    <div class="platform-info">
+                        <div class="platform-name">Android</div>
+                        <div class="platform-desc">Install from Chrome browser</div>
+                    </div>
+                    <div class="install-icon">→</div>
+                </div>
+
+                <div class="platform-btn" onclick="showInstructions('ios')">
+                    <div class="platform-icon">🍎</div>
+                    <div class="platform-info">
+                        <div class="platform-name">iPhone / iPad</div>
+                        <div class="platform-desc">Install from Safari</div>
+                    </div>
+                    <div class="install-icon">→</div>
+                </div>
+
+                <div class="platform-btn" onclick="showInstructions('pwa')">
+                    <div class="platform-icon">🌐</div>
+                    <div class="platform-info">
+                        <div class="platform-name">PWA Version</div>
+                        <div class="platform-desc">Works on all devices</div>
+                    </div>
+                    <div class="install-icon">→</div>
+                </div>
+            </div>
+
+            <div class="qr-section">
+                <div class="qr-code">📲<br>Scan</div>
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">Scan QR code with your phone</p>
+            </div>
+
+            <div id="instructions" class="instructions">
+                <h3>📖 How to Install</h3>
+                <ol>
+                    <li>Open this page in Chrome or Safari on your phone</li>
+                    <li>Tap the share/menu button</li>
+                    <li>Select "Add to Home Screen" or "Install App"</li>
+                    <li>Tap "Install" or "Add"</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showInstructions(platform) {
+            const instructionsDiv = document.getElementById('instructions');
+            if (platform === 'android') {
+                instructionsDiv.innerHTML = `
+                    <h3>🤖 Install on Android</h3>
+                    <ol>
+                        <li>Open this page in <strong>Chrome browser</strong></li>
+                        <li>Tap the <strong>menu button (3 dots)</strong> at the top right</li>
+                        <li>Select <strong>"Install App"</strong> or <strong>"Add to Home Screen"</strong></li>
+                        <li>Tap <strong>"Install"</strong> to confirm</li>
+                        <li>The app icon will appear on your home screen</li>
+                    </ol>
+                    <p style="margin-top: 15px; color: #FF6B35;">✅ That's it! You can now use Listara like a native app!</p>
+                `;
+            } else if (platform === 'ios') {
+                instructionsDiv.innerHTML = `
+                    <h3>📱 Install on iPhone/iPad</h3>
+                    <ol>
+                        <li>Open this page in <strong>Safari browser</strong> (Chrome won't work)</li>
+                        <li>Tap the <strong>Share button</strong> (square with arrow up)</li>
+                        <li>Scroll down and tap <strong>"Add to Home Screen"</strong></li>
+                        <li>Tap <strong>"Add"</strong> in the top right corner</li>
+                        <li>The app icon will appear on your home screen</li>
+                    </ol>
+                    <p style="margin-top: 15px; color: #FF6B35;">✅ Done! Listara will now open like a real app!</p>
+                `;
+            } else {
+                instructionsDiv.innerHTML = `
+                    <h3>🌐 Install PWA on Any Device</h3>
+                    <ol>
+                        <li>Open this page in <strong>Chrome, Edge, or Safari</strong></li>
+                        <li>Look for the <strong>install icon</strong> in the address bar</li>
+                        <li>Click/Tap <strong>"Install"</strong> or <strong>"Add to Home Screen"</strong></li>
+                        <li>Follow the prompts to complete installation</li>
+                    </ol>
+                    <p style="margin-top: 15px; color: #FF6B35;">✅ Enjoy using Listara as a standalone app!</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
