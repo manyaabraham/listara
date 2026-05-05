@@ -39,7 +39,7 @@
 import { onMounted, computed } from 'vue'
 import { useAuthStore } from './stores/auth'
 import { useNotificationStore } from './stores/notifications'
-import InstallPrompt from './components/InstallPrompt.vue'
+import InstallPrompt from './components/InstallButton.vue'
 
 const authStore = useAuthStore()
 const notificationStore = useNotificationStore()
@@ -125,7 +125,7 @@ onMounted(async () => {
   .bottom-nav {
     display: none;
   }
-  
+
   .app-layout {
     padding-bottom: 0;
   }

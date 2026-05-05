@@ -10,6 +10,14 @@
       <p>{{ authStore.user?.email }}</p>
     </div>
 
+    <div class="install-section card">
+      <h3>📱 Install App</h3>
+      <p>Get Listara on your home screen for easy access</p>
+      <button @click="showInstallInstructions" class="btn btn-primary">
+        Install Listara
+      </button>
+    </div>
+
     <div class="profile-stats card">
       <h3>Your Kitchen Stats</h3>
       <div class="stats-list">
@@ -55,6 +63,28 @@ const logout = async () => {
   router.push('/login')
 }
 
+const showInstallInstructions = () => {
+  // Check if app is already installed
+  if (window.matchMedia('(display-mode: standalone)').matches) {
+    alert('✨ Listara is already installed on your device!')
+    return
+  }
+
+  // Check if browser supports PWA installation
+  if ('BeforeInstallPromptEvent' in window) {
+    alert('📱 Tap the install button that appears in your browser address bar!')
+  } else {
+    // Show manual instructions
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+
+    if (isIOS) {
+      alert('📱 To install Listara on iPhone/iPad:\n\n1. Tap the Share button (⬆️)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add" in the top right')
+    } else {
+      alert('📱 To install Listara on Android:\n\n1. Tap the menu (3 dots) in Chrome\n2. Tap "Install App" or "Add to Home Screen"\n3. Tap "Install" to confirm')
+    }
+  }
+}
+
 onMounted(async () => {
   await kitchenStore.loadItems()
   await shoppingStore.loadList()
@@ -70,6 +100,31 @@ onMounted(async () => {
 .profile-header {
   text-align: center;
   margin-bottom: 20px;
+}
+
+.install-section {
+  text-align: center;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(78, 205, 196, 0.1));
+  border: 2px solid var(--primary);
+}
+
+.install-section h3 {
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.install-section p {
+  color: var(--gray-600);
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.install-section .btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 12px 24px;
+  font-size: 16px;
 }
 
 .profile-avatar {
@@ -126,9 +181,30 @@ onMounted(async () => {
   color: white;
   width: 100%;
   margin-top: 16px;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .btn-danger:hover {
   background: #d32f2f;
+  transform: translateY(-2px);
+}
+
+.btn-primary {
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
 }
 </style>
