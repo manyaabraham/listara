@@ -2,7 +2,7 @@
   "name": "Listara",
   "short_name": "Listara",
   "description": "Smart Kitchen Management App",
-  "start_url": "/splash.html",
+  "start_url": "/",
   "display": "standalone",
   "theme_color": "#FF6B35",
   "background_color": "#FF6B35",

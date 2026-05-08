@@ -1,9 +1,7 @@
 <template>
   <div id="app">
-      <div id="app">
-    <SplashManager />
-    <!-- rest of your app -->
-  </div>
+     <SplashManager />
+     
     <div v-if="authStore.user" class="app-layout">
       <!-- Side Panel Overlay -->
       <div v-if="sidePanelOpen" class="side-panel-overlay" @click="closeSidePanel"></div>
