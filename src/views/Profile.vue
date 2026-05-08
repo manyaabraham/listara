@@ -1,57 +1,82 @@
 <template>
   <div class="profile-page">
-    <div class="profile-header card">
-      <div class="profile-avatar">
-        <div class="avatar-placeholder">
-          {{ authStore.profile?.full_name?.charAt(0) || 'U' }}
-        </div>
-      </div>
-      <h2>{{ authStore.profile?.full_name }}</h2>
-      <p>{{ authStore.user?.email }}</p>
-    </div>
-
-    <div class="install-section card">
-      <h3>📱 Download Listara App</h3>
-      <p>Get the app on your device</p>
-
-      <div class="download-buttons">
-        <button @click="downloadApp" class="btn-download" :class="deviceClass">
-          <span class="btn-icon">{{ deviceIcon }}</span>
-          <span class="btn-text">{{ downloadText }}</span>
+    <!-- Profile Header Card -->
+    <div class="profile-card">
+      <!-- Three Dots Menu -->
+      <div class="menu-container">
+        <button class="menu-trigger" @click="toggleMenu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="5" r="1.5"/>
+            <circle cx="12" cy="12" r="1.5"/>
+            <circle cx="12" cy="19" r="1.5"/>
+          </svg>
         </button>
-      </div>
-
-      <p class="device-detected">📱 Detected: {{ deviceName }}</p>
-      <p class="download-note">💡 Click the button above to download Listara for your device</p>
-    </div>
-
-    <div class="profile-stats card">
-      <h3>Your Kitchen Stats</h3>
-      <div class="stats-list">
-        <div class="stat-row">
-          <span>Total Items</span>
-          <span class="stat-value">{{ kitchenStore.items.length }}</span>
-        </div>
-        <div class="stat-row">
-          <span>Low Stock Items</span>
-          <span class="stat-value">{{ lowStockCount }}</span>
-        </div>
-        <div class="stat-row">
-          <span>Shopping Items</span>
-          <span class="stat-value">{{ pendingShopping.length }}</span>
+        
+        <div v-if="showMenu" class="dropdown-menu" @click.stop>
+          <div class="dropdown-item" @click="goToEditProfile">
+            <span class="dropdown-icon">✎</span>
+            <span>Edit Profile</span>
+          </div>
+          <div class="dropdown-item" @click="goToChangePassword">
+            <span class="dropdown-icon">🔒</span>
+            <span>Change Password</span>
+          </div>
+          <hr class="dropdown-divider">
+          <div class="dropdown-item logout-item" @click="logout">
+            <span class="dropdown-icon">🚪</span>
+            <span>Sign Out</span>
+          </div>
         </div>
       </div>
+
+      <div class="profile-cover"></div>
+      <div class="profile-avatar-wrapper">
+        <div class="profile-avatar" @click="goToEditProfile">
+          <img v-if="authStore.profile?.avatar_url" :src="authStore.profile.avatar_url" alt="Profile">
+          <div v-else class="avatar-placeholder">
+            {{ getUserInitials() }}
+          </div>
+          <div class="avatar-edit-badge">
+            <span>✎</span>
+          </div>
+        </div>
+      </div>
+      <div class="profile-info">
+        <h2>{{ displayName }}</h2>
+        <p class="user-email">{{ authStore.user?.email }}</p>
+        <div class="account-status">
+          <span class="status-badge" :class="accountStatus.class">
+            {{ accountStatus.icon }} {{ accountStatus.text }}
+          </span>
+        </div>
+      </div>
     </div>
 
-    <div class="profile-actions card">
-      <h3>Account Settings</h3>
-      <button @click="logout" class="btn btn-danger">Logout</button>
+    <!-- Stats Section -->
+    <div class="stats-section">
+      <div class="stat-card" @click="goToKitchen">
+        <div class="stat-number">{{ kitchenStore.items.length }}</div>
+        <div class="stat-label">Kitchen Items</div>
+      </div>
+      <div class="stat-card" @click="goToShopping">
+        <div class="stat-number">{{ pendingShopping.length }}</div>
+        <div class="stat-label">Shopping Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number">{{ lowStockCount }}</div>
+        <div class="stat-label">Low Stock</div>
+      </div>
+    </div>
+
+    <!-- Member Since -->
+    <div class="member-since">
+      <p>Member since {{ formatDate(authStore.user?.created_at) }}</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useKitchenStore } from '../stores/kitchen'
@@ -62,466 +87,355 @@ const authStore = useAuthStore()
 const kitchenStore = useKitchenStore()
 const shoppingStore = useShoppingStore()
 
-const deviceName = ref('')
-const deviceIcon = ref('📱')
-const downloadText = ref('Download App')
-const deviceClass = ref('')
+const showMenu = ref(false)
 
 const lowStockCount = computed(() => kitchenStore.items.filter(i => i.status === 'low').length)
 const pendingShopping = computed(() => shoppingStore.items.filter(i => i.status === 'pending'))
 
+const displayName = computed(() => {
+  return authStore.profile?.display_name || authStore.profile?.full_name || authStore.user?.email?.split('@')[0] || 'User'
+})
+
+const accountStatus = computed(() => {
+  const isVerified = authStore.user?.email_confirmed_at || authStore.user?.confirmed_at
+  if (isVerified) {
+    return { class: 'active', icon: '●', text: 'Active' }
+  }
+  return { class: 'pending', icon: '○', text: 'Pending' }
+})
+
+const formatDate = (dateString) => {
+  if (!dateString) return 'Not available'
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+const getUserInitials = () => {
+  const name = authStore.profile?.display_name || authStore.profile?.full_name
+  if (!name) return 'U'
+  const parts = name.trim().split(' ')
+  if (parts.length === 1) return parts[0].charAt(0).toUpperCase()
+  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase()
+}
+
+const toggleMenu = () => {
+  showMenu.value = !showMenu.value
+}
+
+const closeMenu = () => {
+  showMenu.value = false
+}
+
+const goToEditProfile = () => {
+  closeMenu()
+  router.push('/profile/edit')
+}
+
+const goToChangePassword = () => {
+  closeMenu()
+  router.push('/profile/change-password')
+}
+
+const goToKitchen = () => {
+  router.push('/kitchen')
+}
+
+const goToShopping = () => {
+  router.push('/shopping')
+}
+
 const logout = async () => {
+  closeMenu()
   await authStore.logout()
   router.push('/login')
 }
 
-const detectDevice = () => {
-  const userAgent = navigator.userAgent.toLowerCase()
-
-  if (/android/.test(userAgent)) {
-    deviceName.value = 'Android Phone/Tablet'
-    deviceIcon.value = '🤖'
-    downloadText.value = 'Download for Android'
-    deviceClass.value = 'android'
+// Close dropdown when clicking outside
+const handleClickOutside = (event) => {
+  const menuContainer = document.querySelector('.menu-container')
+  if (menuContainer && !menuContainer.contains(event.target)) {
+    showMenu.value = false
   }
-  else if (/iphone|ipad|ipod/.test(userAgent)) {
-    deviceName.value = 'iPhone / iPad'
-    deviceIcon.value = '🍎'
-    downloadText.value = 'Install on iOS'
-    deviceClass.value = 'ios'
-  }
-  else if (/windows/.test(userAgent)) {
-    deviceName.value = 'Windows PC'
-    deviceIcon.value = '💻'
-    downloadText.value = 'Download for Windows'
-    deviceClass.value = 'windows'
-  }
-  else if (/mac/.test(userAgent)) {
-    deviceName.value = 'Mac Computer'
-    deviceIcon.value = '🍎'
-    downloadText.value = 'Download for Mac'
-    deviceClass.value = 'mac'
-  }
-  else if (/linux/.test(userAgent)) {
-    deviceName.value = 'Linux Computer'
-    deviceIcon.value = '🐧'
-    downloadText.value = 'Download for Linux'
-    deviceClass.value = 'linux'
-  }
-  else {
-    deviceName.value = 'Generic Device'
-    deviceIcon.value = '📱'
-    downloadText.value = 'Download App'
-    deviceClass.value = 'generic'
-  }
-}
-
-const downloadApp = () => {
-  const userAgent = navigator.userAgent.toLowerCase()
-
-  if (/android/.test(userAgent)) {
-    downloadForAndroid()
-  }
-  else if (/iphone|ipad|ipod/.test(userAgent)) {
-    installForIOS()
-  }
-  else if (/windows/.test(userAgent)) {
-    downloadForWindows()
-  }
-  else if (/mac/.test(userAgent)) {
-    downloadForMac()
-  }
-  else if (/linux/.test(userAgent)) {
-    downloadForLinux()
-  }
-  else {
-    downloadUniversal()
-  }
-}
-
-const downloadForAndroid = () => {
-  const installerHtml = '<!DOCTYPE html>\n' +
-    '<html>\n' +
-    '<head><title>Install Listara</title>\n' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-    '<style>\n' +
-    'body { font-family: Arial; text-align: center; padding: 50px; background: linear-gradient(135deg, #FF6B35, #4ECDC4); }\n' +
-    '.card { background: white; border-radius: 20px; padding: 40px; max-width: 400px; margin: 0 auto; }\n' +
-    'button { background: #FF6B35; color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; }\n' +
-    '</style>\n' +
-    '</head>\n' +
-    '<body>\n' +
-    '<div class="card">\n' +
-    '<h1>📱 Install Listara</h1>\n' +
-    '<p>Click the button below to install Listara on your Android device</p>\n' +
-    '<button onclick="showInstructions()">Install Listara</button>\n' +
-    '<p style="margin-top: 20px; font-size: 12px; color: #666;">Make sure you are using Chrome browser</p>\n' +
-    '</div>\n' +
-    '<script>\n' +
-    'function showInstructions() {\n' +
-    '  alert("To install Listara:\\n\\n1. Tap the menu (3 dots)\\n2. Select \\"Install App\\"\\n3. Tap Install");\n' +
-    '  window.location.href = "/";\n' +
-    '}\n' +
-    '<\/script>\n' +
-    '</body>\n' +
-    '</html>'
-
-  const blob = new Blob([installerHtml], { type: 'text/html' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'Listara-Android.html'
-  link.click()
-  URL.revokeObjectURL(link.href)
-
-  setTimeout(() => {
-    alert('Download complete! Open the downloaded file to install Listara.')
-  }, 500)
-}
-
-const installForIOS = () => {
-  alert('To install Listara on your iPhone/iPad:\n\n1️⃣ Open this page in Safari browser\n2️⃣ Tap the Share button (⬆️)\n3️⃣ Scroll down and tap "Add to Home Screen"\n4️⃣ Tap "Add" in the top right\n\nThe app will appear on your home screen!')
-}
-
-const downloadForWindows = () => {
-  const batchContent = '@echo off\n' +
-    'title Listara Installer\n' +
-    'color 0A\n' +
-    'echo ========================================\n' +
-    'echo     Listara Windows Installer\n' +
-    'echo ========================================\n' +
-    'echo.\n' +
-    'echo Installing Listara on your computer...\n' +
-    'echo.\n' +
-    'echo Creating desktop shortcut...\n' +
-    'powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.CreateShortcut(\'%USERPROFILE%\\Desktop\\Listara.url\'); $SC.TargetPath = \'' + window.location.origin + '\'; $SC.Save()"\n' +
-    'echo.\n' +
-    'echo Creating start menu shortcut...\n' +
-    'powershell -Command "$WS = New-Object -ComObject WScript.Shell; $SC = $WS.CreateShortcut(\'%APPDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Listara.url\'); $SC.TargetPath = \'' + window.location.origin + '\'; $SC.Save()"\n' +
-    'echo.\n' +
-    'echo ========================================\n' +
-    'echo     Installation Complete!\n' +
-    'echo ========================================\n' +
-    'echo.\n' +
-    'echo Listara has been installed successfully!\n' +
-    'echo Check your desktop for the Listara shortcut.\n' +
-    'echo.\n' +
-    'pause'
-
-  const blob = new Blob([batchContent], { type: 'application/bat' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'Listara-Setup.bat'
-  link.click()
-  URL.revokeObjectURL(link.href)
-
-  setTimeout(() => {
-    alert('Windows installer downloaded! Run "Listara-Setup.bat" to install.')
-  }, 500)
-}
-
-const downloadForMac = () => {
-  const macScript = '#!/bin/bash\n' +
-    'echo "========================================\n' +
-    'echo "     Listara Mac Installer"\n' +
-    'echo "========================================\n' +
-    'echo "\n' +
-    'echo "Installing Listara on your Mac..."\n' +
-    'echo "\n' +
-    'cat > ~/Desktop/Listara.command << EOF\n' +
-    '#!/bin/bash\n' +
-    'open "' + window.location.origin + '"\n' +
-    'EOF\n' +
-    'chmod +x ~/Desktop/Listara.command\n' +
-    'echo "\n' +
-    'echo "========================================\n' +
-    'echo "     Installation Complete!"\n' +
-    'echo "========================================\n' +
-    'echo "\n' +
-    'echo "Listara has been installed on your desktop!"\n' +
-    'echo "\n' +
-    'read -p "Press enter to close..."'
-
-  const blob = new Blob([macScript], { type: 'text/plain' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'Listara-Installer.command'
-  link.click()
-  URL.revokeObjectURL(link.href)
-
-  setTimeout(() => {
-    alert('Mac installer downloaded! Run "Listara-Installer.command" to install.')
-  }, 500)
-}
-
-const downloadForLinux = () => {
-  const linuxScript = '#!/bin/bash\n' +
-    'echo "========================================\n' +
-    'echo "     Listara Linux Installer"\n' +
-    'echo "========================================\n' +
-    'echo "\n' +
-    'echo "Installing Listara on your Linux system..."\n' +
-    'echo "\n' +
-    'mkdir -p ~/.local/share/applications\n' +
-    'cat > ~/.local/share/applications/listara.desktop << EOF\n' +
-    '[Desktop Entry]\n' +
-    'Name=Listara\n' +
-    'Type=Application\n' +
-    'Exec=xdg-open ' + window.location.origin + '\n' +
-    'Icon=web-browser\n' +
-    'Terminal=false\n' +
-    'Categories=Utility;\n' +
-    'EOF\n' +
-    'echo "\n' +
-    'echo "========================================\n' +
-    'echo "     Installation Complete!"\n' +
-    'echo "========================================\n' +
-    'echo "\n' +
-    'echo "Listara has been installed! Find it in your applications menu."\n' +
-    'echo "\n' +
-    'read -p "Press enter to close..."'
-
-  const blob = new Blob([linuxScript], { type: 'text/plain' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'Listara-Installer.sh'
-  link.click()
-  URL.revokeObjectURL(link.href)
-
-  setTimeout(() => {
-    alert('Linux installer downloaded! Run "chmod +x Listara-Installer.sh" then "./Listara-Installer.sh" to install.')
-  }, 500)
-}
-
-const downloadUniversal = () => {
-  const universalHtml = '<!DOCTYPE html>\n' +
-    '<html>\n' +
-    '<head>\n' +
-    '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
-    '  <title>Install Listara</title>\n' +
-    '  <style>\n' +
-    '    body { font-family: Arial; text-align: center; padding: 50px 20px; background: linear-gradient(135deg, #FF6B35, #4ECDC4); min-height: 100vh; }\n' +
-    '    .card { background: white; border-radius: 20px; padding: 40px; max-width: 400px; margin: 0 auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }\n' +
-    '    h1 { color: #FF6B35; }\n' +
-    '    button { background: #FF6B35; color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 18px; margin: 10px; cursor: pointer; }\n' +
-    '    button:hover { transform: translateY(-2px); }\n' +
-    '  </style>\n' +
-    '</head>\n' +
-    '<body>\n' +
-    '  <div class="card">\n' +
-    '    <h1>📱 Install Listara</h1>\n' +
-    '    <p>Choose your device to get started</p>\n' +
-    '    <button onclick="location.href=\'/?device=android\'">🤖 Android</button>\n' +
-    '    <button onclick="location.href=\'/?device=ios\'">🍎 iPhone/iPad</button>\n' +
-    '    <button onclick="location.href=\'/?device=windows\'">💻 Windows</button>\n' +
-    '    <button onclick="location.href=\'/?device=mac\'">🍎 Mac</button>\n' +
-    '    <button onclick="location.href=\'/?device=linux\'">🐧 Linux</button>\n' +
-    '  </div>\n' +
-    '</body>\n' +
-    '</html>'
-
-  const blob = new Blob([universalHtml], { type: 'text/html' })
-  const link = document.createElement('a')
-  link.href = URL.createObjectURL(blob)
-  link.download = 'Listara-Install.html'
-  link.click()
-  URL.revokeObjectURL(link.href)
-
-  alert('Download complete! Open the downloaded file to install Listara.')
 }
 
 onMounted(async () => {
   await kitchenStore.loadItems()
   await shoppingStore.loadList()
-  detectDevice()
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
 <style scoped>
 .profile-page {
-  max-width: 600px;
+  max-width: 500px;
   margin: 0 auto;
-  padding-bottom: 20px;
+  padding: 20px;
 }
 
-.profile-header {
-  text-align: center;
+.profile-card {
+  background: white;
+  border-radius: 24px;
+  overflow: hidden;
   margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  position: relative;
 }
 
-.install-section {
-  text-align: center;
-  margin-bottom: 20px;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.1), rgba(78, 205, 196, 0.1));
-  border: 2px solid var(--primary);
-  animation: pulse 2s infinite;
+.menu-container {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
 }
 
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(255, 107, 53, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba(255, 107, 53, 0); }
-}
-
-.install-section h3 {
-  color: var(--primary);
-  margin-bottom: 8px;
-}
-
-.install-section p {
-  color: var(--gray-600);
-  font-size: 14px;
-  margin-bottom: 15px;
-}
-
-.download-buttons {
-  margin: 20px 0;
-}
-
-.btn-download {
-  width: 100%;
-  padding: 18px 20px;
+.menu-trigger {
+  background: rgba(255, 255, 255, 0.9);
   border: none;
-  border-radius: 16px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--dark);
+  backdrop-filter: blur(4px);
+}
+
+.menu-trigger:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  min-width: 180px;
+  overflow: hidden;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
   gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--dark);
+  font-size: 14px;
 }
 
-.btn-download:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+.dropdown-item:hover {
+  background: var(--gray-100);
 }
 
-.btn-download.android {
-  background: linear-gradient(135deg, #3DDC84, #2B9E5E);
+.dropdown-icon {
+  font-size: 16px;
+  width: 20px;
 }
 
-.btn-download.ios {
-  background: linear-gradient(135deg, #000000, #333333);
+.dropdown-divider {
+  height: 1px;
+  background: var(--gray-200);
+  margin: 4px 0;
+  border: none;
 }
 
-.btn-download.windows {
-  background: linear-gradient(135deg, #0078D4, #005A9E);
+.logout-item {
+  color: var(--danger);
 }
 
-.btn-download.mac {
-  background: linear-gradient(135deg, #555555, #333333);
+.logout-item:hover {
+  background: #ffebee;
 }
 
-.btn-download.linux {
-  background: linear-gradient(135deg, #FCC624, #F49B15);
-  color: #000;
+.profile-cover {
+  height: 100px;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
 }
 
-.btn-download.generic {
-  background: linear-gradient(135deg, #FF6B35, #E55A2B);
-}
-
-.btn-icon {
-  font-size: 28px;
-}
-
-.btn-text {
-  font-size: 18px;
-}
-
-.device-detected {
-  font-size: 12px;
-  color: var(--primary);
-  margin-top: 10px;
-  font-weight: 500;
-}
-
-.download-note {
-  font-size: 12px;
-  color: var(--gray-500);
-  margin-top: 10px;
+.profile-avatar-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: -50px;
 }
 
 .profile-avatar {
-  margin-bottom: 16px;
+  position: relative;
+  cursor: pointer;
 }
 
 .avatar-placeholder {
-  width: 80px;
-  height: 80px;
+  width: 100px;
+  height: 100px;
   background: var(--primary);
   color: white;
   border-radius: 50%;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 36px;
-  font-weight: bold;
+  font-size: 40px;
+  font-weight: 500;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.profile-header h2 {
+.profile-avatar img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-edit-badge {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  background: var(--primary);
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  border: 2px solid white;
+  cursor: pointer;
+}
+
+.profile-info {
+  text-align: center;
+  padding: 20px 20px 24px;
+}
+
+.profile-info h2 {
+  margin-bottom: 6px;
+  color: var(--dark);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.user-email {
+  color: var(--gray-600);
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.account-status {
+  margin-top: 8px;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-badge.active {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.stats-section {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: white;
+  padding: 16px;
+  border-radius: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-number {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primary);
   margin-bottom: 4px;
 }
 
-.profile-header p {
+.stat-label {
+  font-size: 13px;
   color: var(--gray-600);
 }
 
-.stats-list {
-  margin-top: 16px;
-}
-
-.stat-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--gray-200);
-}
-
-.stat-row:last-child {
-  border-bottom: none;
-}
-
-.stat-value {
-  font-weight: bold;
-  color: var(--primary);
-}
-
-.profile-actions {
+.member-since {
   text-align: center;
-}
-
-.btn-danger {
-  background: var(--danger);
-  color: white;
-  width: 100%;
-  margin-top: 16px;
-  padding: 12px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-danger:hover {
-  background: #d32f2f;
-  transform: translateY(-2px);
+  padding: 16px;
+  color: var(--gray-500);
+  font-size: 12px;
 }
 
 @media (max-width: 480px) {
-  .btn-download {
-    padding: 15px 20px;
+  .profile-page {
+    padding: 16px;
   }
-
-  .btn-icon {
-    font-size: 24px;
+  
+  .avatar-placeholder,
+  .profile-avatar img {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
   }
-
-  .btn-text {
-    font-size: 16px;
+  
+  .profile-avatar-wrapper {
+    margin-top: -40px;
+  }
+  
+  .profile-cover {
+    height: 80px;
+  }
+  
+  .stat-number {
+    font-size: 22px;
+  }
+  
+  .dropdown-menu {
+    min-width: 160px;
   }
 }
 </style>

@@ -2,14 +2,22 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const routes = [
-  { path: '/', redirect: '/login' },
+  { path: '/', redirect: '/dashboard' },
   { path: '/login', component: () => import('../views/Login.vue') },
   { path: '/register', component: () => import('../views/Register.vue') },
   { path: '/dashboard', component: () => import('../views/Dashboard.vue'), meta: { requiresAuth: true } },
   { path: '/kitchen', component: () => import('../views/Kitchen.vue'), meta: { requiresAuth: true } },
   { path: '/shopping', component: () => import('../views/Shopping.vue'), meta: { requiresAuth: true } },
-  { path: '/notifications', component: () => import('../views/Notifications.vue'), meta: { requiresAuth: true } },
-  { path: '/profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } }
+  { path: '/recipes', component: () => import('../views/Recipes.vue'), meta: { requiresAuth: true } },
+  { path: '/reports', component: () => import('../views/Reports.vue'), meta: { requiresAuth: true } },
+  { path: '/profile', component: () => import('../views/Profile.vue'), meta: { requiresAuth: true } },
+  { path: '/settings', component: () => import('../views/Settings.vue'), meta: { requiresAuth: true } },
+  { path: '/ai-assistant', component: () => import('../views/AIAssistant.vue'), meta: { requiresAuth: true } },
+  { path: '/chefscorner', component: () => import('../views/ChefsCorner.vue'), meta: { requiresAuth: true } },
+  { path: '/inventory-analytics', component: () => import('../views/InventoryAnalytics.vue'), meta: { requiresAuth: true } },
+  { path: '/chef-chat/:conversationId', component: () => import('../views/ChefChat.vue'), meta: { requiresAuth: true } },
+  { path: '/chef-messaging-profile/:id', component: () => import('../views/ChefMessagingProfile.vue'), meta: { requiresAuth: true } },
+  { path: '/chef-account-settings', component: () => import('../views/ChefAccountSettings.vue'), meta: { requiresAuth: true } }
 ]
 
 const router = createRouter({

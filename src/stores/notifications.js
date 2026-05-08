@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../services/supabase'
+import { supabase } from '../services/supabase'
 import { useAuthStore } from './auth'
 
 export const useNotificationStore = defineStore('notifications', {
@@ -18,7 +18,12 @@ export const useNotificationStore = defineStore('notifications', {
       if (!auth.user) return
       
       this.loading = true
-      const { data, error } = await getNotifications(auth.user.id)
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', auth.user.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
       
       if (!error && data) {
         this.notifications = data
@@ -28,7 +33,10 @@ export const useNotificationStore = defineStore('notifications', {
     },
 
     async markAsRead(id) {
-      const { error } = await markNotificationRead(id)
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', id)
       
       if (!error) {
         const notification = this.notifications.find(n => n.id === id)
@@ -40,13 +48,35 @@ export const useNotificationStore = defineStore('notifications', {
 
     async markAllAsRead() {
       const auth = useAuthStore()
-      const { error } = await markAllNotificationsRead(auth.user.id)
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', auth.user.id)
+        .eq('is_read', false)
       
       if (!error) {
         this.notifications.forEach(n => {
           n.is_read = true
         })
       }
+    },
+
+    async addNotification(notification) {
+      const auth = useAuthStore()
+      const { data, error } = await supabase
+        .from('notifications')
+        .insert([{
+          user_id: auth.user.id,
+          ...notification,
+          created_at: new Date()
+        }])
+        .select()
+      
+      if (!error && data) {
+        this.notifications.unshift(data[0])
+        return data[0]
+      }
+      return null
     }
   }
 })

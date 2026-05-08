@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35"/>
+      <stop offset="100%" style="stop-color:#E8551E"/>
+    </linearGradient>
+    <linearGradient id="basketGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B35"/>
+      <stop offset="100%" style="stop-color:#E8551E"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <!-- Background with subtle gradient -->
+  <rect width="512" height="512" rx="115" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle inner glow -->
+  <rect width="512" height="512" rx="115" fill="none" stroke="#FF8C5A" stroke-width="8" opacity="0.3"/>
+  
+  <!-- White circular backdrop -->
+  <circle cx="256" cy="256" r="195" fill="white" filter="url(#shadow)"/>
+  
+  <!-- Basket Handle - elegant curve -->
+  <path d="M 168 160 C 168 95, 344 95, 344 160" 
+        fill="none" stroke="url(#basketGrad)" stroke-width="26" stroke-linecap="round"/>
+  
+  <!-- Basket Body - sleek rounded shape -->
+  <path d="M 130 210 
+           C 130 210, 382 210, 382 210
+           C 408 210, 418 235, 402 335 
+           L 375 365 
+           C 358 382, 335 388, 295 388 
+           L 217 388 
+           C 177 388, 154 382, 137 365 
+           L 110 335 
+           C 94 235, 104 210, 130 210 Z" 
+        fill="url(#basketGrad)"/>
+  
+  <!-- Basket Rim - polished top edge -->
+  <path d="M 128 218 L 384 218" 
+        stroke="#E84510" stroke-width="18" stroke-linecap="round"/>
+  
+  <!-- Elegant Weave Pattern - Vertical -->
+  <line x1="192" y1="230" x2="178" y2="380" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+  <line x1="256" y1="230" x2="256" y2="380" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+  <line x1="320" y1="230" x2="334" y2="380" stroke="#FFFFFF" stroke-width="12" stroke-linecap="round" opacity="0.9"/>
+  
+  <!-- Elegant Weave Pattern - Horizontal -->
+  <line x1="145" y1="275" x2="367" y2="275" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <line x1="140" y1="325" x2="372" y2="325" stroke="#FFFFFF" stroke-width="10" stroke-linecap="round" opacity="0.85"/>
+  <line x1="150" y1="365" x2="362" y2="365" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+  
+  <!-- Decorative highlight on handle -->
+  <path d="M 188 145 C 188 110, 324 110, 324 145" 
+        fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity="0.25"/>
+  
+  <!-- Subtle shine on basket -->
+  <ellipse cx="280" cy="240" rx="60" ry="15" fill="#FFFFFF" opacity="0.08"/>
+</svg>

@@ -1,10 +1,5 @@
 import { defineStore } from 'pinia'
-import { 
-  getActiveShoppingList, 
-  addShoppingItem, 
-  updateShoppingItem, 
-  deleteShoppingItem 
-} from '../services/supabase'
+import { supabase } from '../services/supabase'
 import { useAuthStore } from './auth'
 
 export const useShoppingStore = defineStore('shopping', {
@@ -20,56 +15,122 @@ export const useShoppingStore = defineStore('shopping', {
       if (!auth.user) return
       
       this.loading = true
-      const { data, error } = await getActiveShoppingList(auth.user.id)
       
-      if (!error && data) {
-        this.list = data.list
-        this.items = data.items || []
+      // Get or create active shopping list
+      let { data: list, error: listError } = await supabase
+        .from('shopping_lists')
+        .select('*')
+        .eq('user_id', auth.user.id)
+        .eq('status', 'pending')
+        .maybeSingle()
+      
+      if (!list && !listError) {
+        const { data: newList, error: createError } = await supabase
+          .from('shopping_lists')
+          .insert([{ user_id: auth.user.id, name: 'Shopping List' }])
+          .select()
+          .single()
+        
+        if (!createError && newList) {
+          list = newList
+        }
+      }
+      
+      if (list) {
+        const { data: items, error: itemsError } = await supabase
+          .from('shopping_list_items')
+          .select('*')
+          .eq('shopping_list_id', list.id)
+          .order('created_at', { ascending: false })
+        
+        if (!itemsError && items) {
+          this.items = items
+          this.list = list
+        }
       }
       
       this.loading = false
     },
 
     async addItem(item) {
-      if (!this.list) await this.loadList()
-      if (!this.list) return
+      const auth = useAuthStore()
+      if (!auth.user) return null
+      
+      // Ensure we have an active shopping list
+      if (!this.list) {
+        await this.loadList()
+      }
+      
+      if (!this.list) {
+        // Create a new shopping list
+        const { data: newList, error: createError } = await supabase
+          .from('shopping_lists')
+          .insert([{ user_id: auth.user.id, name: 'Shopping List' }])
+          .select()
+          .single()
+        
+        if (createError || !newList) {
+          console.error('Error creating shopping list:', createError)
+          return null
+        }
+        this.list = newList
+      }
       
       const newItem = {
-        ...item,
         shopping_list_id: this.list.id,
-        status: 'pending'
+        item_name: item.item_name,
+        quantity: parseFloat(item.quantity),
+        unit: item.unit || 'pcs',
+        auto_added: item.auto_added || false,
+        kitchen_item_id: item.kitchen_item_id || null,
+        status: 'pending',
+        created_at: new Date()
       }
       
-      const { data, error } = await addShoppingItem(newItem)
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .insert([newItem])
+        .select()
       
-      if (!error && data) {
-        this.items.unshift(data)
-        return data
+      if (error) {
+        console.error('Error adding shopping item:', error)
+        throw error
       }
       
-      throw error
+      if (data && data.length > 0) {
+        this.items.unshift(data[0])
+        return data[0]
+      }
+      
+      return null
     },
 
     async updateItemStatus(id, status) {
-      const { data, error } = await updateShoppingItem(id, { status })
+      const { data, error } = await supabase
+        .from('shopping_list_items')
+        .update({ status, updated_at: new Date() })
+        .eq('id', id)
+        .select()
       
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         const index = this.items.findIndex(i => i.id === id)
         if (index !== -1) {
-          this.items[index] = data
+          this.items[index] = data[0]
         }
+        return data[0]
       }
-      
-      return { data, error }
+      throw error
     },
 
     async removeItem(id) {
-      const { error } = await deleteShoppingItem(id)
+      const { error } = await supabase
+        .from('shopping_list_items')
+        .delete()
+        .eq('id', id)
       
       if (!error) {
         this.items = this.items.filter(i => i.id !== id)
       }
-      
       return { error }
     },
 
