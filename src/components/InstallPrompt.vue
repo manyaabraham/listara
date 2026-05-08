@@ -1,13 +1,13 @@
 <template>
-  <div v-if="showInstallPrompt" class="install-prompt">
-    <div class="install-card">
+  <div v-if="deferredPrompt" class="install-banner">
+    <div class="install-content">
       <div class="install-icon">📱</div>
-      <h3>Install Listara App</h3>
-      <p>Get the best experience with our mobile app</p>
-      <div class="install-buttons">
-        <button @click="installApp" class="install-btn">Install Now</button>
-        <button @click="dismissPrompt" class="later-btn">Later</button>
+      <div class="install-text">
+        <strong>Install Listara App</strong>
+        <span>Get faster access and offline support</span>
       </div>
+      <button @click="installApp" class="install-button">Install</button>
+      <button @click="dismissPrompt" class="close-button">✕</button>
     </div>
   </div>
 </template>
@@ -15,124 +15,98 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 
-const showInstallPrompt = ref(false)
-let deferredPrompt = null
+const deferredPrompt = ref(null)
 
 onMounted(() => {
-  // Check if already installed
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    showInstallPrompt.value = false
-    return
-  }
-  
-  // Check if user dismissed before
-  if (localStorage.getItem('installDismissed')) {
-    showInstallPrompt.value = false
-    return
-  }
-  
-  // Listen for install prompt
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
-    deferredPrompt = e
-    // Show prompt after 3 seconds
-    setTimeout(() => {
-      showInstallPrompt.value = true
-    }, 3000)
+    deferredPrompt.value = e
+    console.log('Install prompt available')
   })
 })
 
 const installApp = async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt()
-    const { outcome } = await deferredPrompt.userChoice
+  if (deferredPrompt.value) {
+    deferredPrompt.value.prompt()
+    const { outcome } = await deferredPrompt.value.userChoice
     if (outcome === 'accepted') {
-      showInstallPrompt.value = false
-      localStorage.setItem('installAccepted', 'true')
+      console.log('User accepted install')
     }
-    deferredPrompt = null
-  } else {
-    // Fallback instructions
-    alert('To install:\n\nAndroid: Chrome menu → "Install App"\n\niOS: Share button → "Add to Home Screen"')
+    deferredPrompt.value = null
   }
 }
 
 const dismissPrompt = () => {
-  showInstallPrompt.value = false
-  localStorage.setItem('installDismissed', 'true')
+  deferredPrompt.value = null
 }
 </script>
 
 <style scoped>
-.install-prompt {
+.install-banner {
   position: fixed;
-  bottom: 100px;
+  bottom: 20px;
   left: 20px;
   right: 20px;
+  background: white;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   z-index: 10000;
   animation: slideUp 0.3s ease;
 }
 
-.install-card {
-  background: white;
-  border-radius: 20px;
-  padding: 20px;
-  text-align: center;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-  border: 1px solid rgba(0,0,0,0.1);
-}
-
-.install-icon {
-  font-size: 48px;
-  margin-bottom: 10px;
-}
-
-.install-card h3 {
-  margin-bottom: 5px;
-  color: var(--dark);
-}
-
-.install-card p {
-  font-size: 13px;
-  color: var(--gray-600);
-  margin-bottom: 15px;
-}
-
-.install-buttons {
+.install-content {
   display: flex;
+  align-items: center;
   gap: 12px;
 }
 
-.install-btn {
+.install-icon {
+  font-size: 40px;
+}
+
+.install-text {
   flex: 1;
-  background: var(--primary);
+  display: flex;
+  flex-direction: column;
+}
+
+.install-text strong {
+  font-size: 14px;
+  color: #333;
+}
+
+.install-text span {
+  font-size: 11px;
+  color: #666;
+}
+
+.install-button {
+  background: #FF6B35;
   color: white;
   border: none;
-  padding: 12px;
+  padding: 8px 16px;
   border-radius: 30px;
   font-weight: 600;
   cursor: pointer;
 }
 
-.later-btn {
-  flex: 1;
-  background: var(--gray-100);
-  color: var(--dark);
+.close-button {
+  background: none;
   border: none;
-  padding: 12px;
-  border-radius: 30px;
-  font-weight: 600;
+  font-size: 20px;
   cursor: pointer;
+  color: #999;
 }
 
 @keyframes slideUp {
   from {
-    opacity: 0;
     transform: translateY(100%);
+    opacity: 0;
   }
   to {
-    opacity: 1;
     transform: translateY(0);
+    opacity: 1;
   }
 }
 </style>

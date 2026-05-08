@@ -2,7 +2,6 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/icons/favicon-32x32.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     
     <!-- PWA Meta Tags -->
@@ -15,7 +14,9 @@
     <!-- Manifest -->
     <link rel="manifest" href="/manifest.json" />
     
-    <!-- Apple Touch Icons -->
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
@@ -29,5 +30,14 @@
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(reg => console.log('Service Worker registered:', reg))
+            .catch(err => console.log('Service Worker error:', err));
+        });
+      }
+    </script>
   </body>
 </html>
