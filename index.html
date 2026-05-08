@@ -18,26 +18,11 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/icons/favicon-16.png" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
-    
-    <!-- Windows Tile -->
-    <meta name="msapplication-TileImage" content="/icons/icon-144.png" />
-    <meta name="msapplication-TileColor" content="#FF6B35" />
     
     <title>Listara </title>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.js"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/sw.js')
-            .then(reg => console.log('Service Worker registered:', reg))
-            .catch(err => console.log('Service Worker error:', err));
-        });
-      }
-    </script>
   </body>
 </html>

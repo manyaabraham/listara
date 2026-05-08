@@ -1,5 +1,9 @@
 <template>
   <div id="app">
+      <div id="app">
+    <SplashManager />
+    <!-- rest of your app -->
+  </div>
     <div v-if="authStore.user" class="app-layout">
       <!-- Side Panel Overlay -->
       <div v-if="sidePanelOpen" class="side-panel-overlay" @click="closeSidePanel"></div>
@@ -190,6 +194,7 @@ import { useAuthStore } from './stores/auth'
 import { useKitchenStore } from './stores/kitchen'
 import { useShoppingStore } from './stores/shopping'
 import { useNotificationStore } from './stores/notifications'
+import SplashManager from './components/SplashManager.vue'
 import InstallPrompt from './components/InstallPrompt.vue'
 const router = useRouter()
 const route = useRoute()
