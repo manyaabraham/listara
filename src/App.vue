@@ -1,7 +1,6 @@
 <template>
   <div id="app">
-     <SplashManager />
-     
+
     <div v-if="authStore.user" class="app-layout">
       <!-- Side Panel Overlay -->
       <div v-if="sidePanelOpen" class="side-panel-overlay" @click="closeSidePanel"></div>
@@ -41,9 +40,9 @@
             <span>Analytics</span>
           </div>
  
-          <div class="menu-item" @click="navigateTo('/chefscorner')">
-            <img src="/icons/hat.svg" alt="Chef" class="menu-icon">
-            <span>Chef's Corner</span>
+          <div class="menu-item" @click="navigateTo('/recipe-search')">
+            <img src="/icons/search.svg" alt="Search" class="menu-icon">
+            <span>Recipe Store</span>
           </div>
           <div class="menu-item" @click="navigateTo('/profile')">
             <img src="/icons/profile.svg" alt="Profile" class="menu-icon">
@@ -63,8 +62,8 @@
         </div>
       </div>
 
-      <!-- Top Header Bar - Hidden on Chef's Corner pages -->
-      <header class="top-header" v-if="!isChefsCornerPage">
+      <!-- Top Header Bar - Hidden on fullscreen pages -->
+      <header class="top-header" v-if="!isFullscreenPage">
         <div class="header-left">
           <button class="menu-btn" @click="openSidePanel">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -145,8 +144,8 @@
         </div>
       </div>
 
-      <!-- Bottom Navigation - Hidden on Chef's Corner pages -->
-      <nav class="bottom-nav" v-if="!isChefsCornerPage">
+      <!-- Bottom Navigation - Hidden on fullscreen pages -->
+      <nav class="bottom-nav" v-if="!isFullscreenPage">
         <router-link to="/dashboard" class="nav-item">
           <img src="/icons/home.svg" alt="Home" class="nav-icon-svg">
           <span class="nav-label">Home</span>
@@ -169,12 +168,12 @@
         </router-link>
       </nav>
 
-      <main class="main-content" :class="{ 'fullscreen-mode': isChefsCornerPage }">
+      <main class="main-content" :class="{ 'fullscreen-mode': isFullscreenPage }">
         <router-view />
       </main>
 
-      <!-- Floating AI Assistant Button - Hidden on Chef's Corner pages -->
-      <button v-if="!isChefsCornerPage" class="floating-ai-btn" @click="goToAIAssistant">
+      <!-- Floating AI Assistant Button - Hidden on fullscreen pages -->
+      <button v-if="!isFullscreenPage" class="floating-ai-btn" @click="goToAIAssistant">
         <div class="ai-icon">🤖</div>
         <div class="ai-pulse"></div>
       </button>
@@ -204,24 +203,25 @@ const notificationStore = useNotificationStore()
 const showUserMenu = ref(false)
 const showNotifications = ref(false)
 const sidePanelOpen = ref(false)
-const isChefsCornerPage = ref(false)
+const isFullscreenPage = ref(false)
 
 const unreadCount = computed(() => notificationStore.unreadCount)
 const notifications = computed(() => notificationStore.notifications)
 
-
-// Define Chef's Corner related paths
-const chefsCornerPaths = [
+// Define fullscreen pages (no nav bars, no header, no AI button)
+const fullscreenPaths = [
   '/chefscorner',
   '/chef-chat',
   '/chef-messaging-profile',
-  '/chef-account-settings'
+  '/chef-account-settings',
+  '/recipe-search',
+  '/downloaded-recipes'
 ]
 
-// Watch route changes to detect Chef's Corner pages
+// Watch route changes to detect fullscreen pages
 watch(() => route.path, (newPath) => {
-  // Check if current path is in Chef's Corner paths
-  isChefsCornerPage.value = chefsCornerPaths.some(path => newPath.startsWith(path))
+  // Check if current path is in fullscreen paths
+  isFullscreenPage.value = fullscreenPaths.some(path => newPath.startsWith(path))
 }, { immediate: true })
 
 const getUserInitials = () => {
@@ -859,7 +859,7 @@ onUnmounted(() => {
   min-height: calc(100vh - 80px);
 }
 
-/* Fullscreen mode for Chef's Corner pages */
+/* Fullscreen mode for Recipe Store, Downloaded Recipes, and Chef's Corner pages */
 .main-content.fullscreen-mode {
   padding: 0;
   max-width: 100%;
